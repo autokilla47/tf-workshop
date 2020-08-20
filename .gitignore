@@ -1,0 +1,6 @@
+*.tfstate*
+*.retry
+.terraform
+*.tfvars
+inventory
+keys

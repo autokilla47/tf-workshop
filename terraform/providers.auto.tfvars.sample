@@ -1,0 +1,19 @@
+azure = {
+  client_id       = ""
+  subscription_id = ""
+  tenant_id       = ""
+  client_secret   = ""
+  
+  group_name = ""
+  location   = "West Europe"
+}
+
+google = {
+  key     = "./keys/google.json"
+  project = "strong-kit-278608"
+  region  = "europe-west3"
+}
+
+digitalocean = {
+    token = ""
+}

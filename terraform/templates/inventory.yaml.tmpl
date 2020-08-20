@@ -1,0 +1,22 @@
+---
+workers:
+  hosts:
+  %{for ip in workers ~}
+    ${ip}:
+  %{ endfor ~}
+
+managers:
+  hosts:
+  %{for ip in managers ~}
+    ${ip}:
+  %{ endfor ~}
+
+manager_main:
+  hosts:
+    ${manager_main}
+
+all:
+  vars:
+    ansible_user: deploy
+    ansible_port: 22
+    ansible_python_interpreter: /usr/bin/python3

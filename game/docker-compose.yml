@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+  mongo:
+    image: 'mongo:3.4.4'
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints: [node.role == manager]
+
+  phaser_server:
+    depends_on:
+      - mongo
+    image: 'clsv/phaser_server:latest'
+    ports:
+      - '8080:8080'
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+      restart_policy:
+        condition: on-failure
+  
+  phaser_client:
+    depends_on:
+      - phase_server
+    image: 'clsv/phaser_client:latest'
+    ports:
+      - '80:80'
+    deploy:
+      replicas: 5
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+

@@ -1,0 +1,57 @@
+- name: Create Swarm
+  hosts: manager_main
+  tasks:
+    - name: Init a new swarm with default parameters
+      docker_swarm:
+        advertise_addr: "{{ inventory_hostname }}"
+        listen_addr: 0.0.0.0:2377
+        state: present
+      register: init_swarm
+
+
+    - name: Show debug
+      debug:
+        var: init_swarm['swarm_facts']['JoinTokens']
+
+    - name: Set Tokens
+      set_fact:
+        token:
+          worker:  "{{ init_swarm['swarm_facts']['JoinTokens']['Worker'] }}"
+          manager:  "{{ init_swarm['swarm_facts']['JoinTokens']['Manager'] }}"
+    
+- name: Add Workers
+  hosts: workers
+  tasks:
+    - docker_swarm:
+        state: join
+        join_token: "{{ hostvars[groups['manager_main'][0]].token.worker }}"
+        #advertise_addr: "eth0:4567"
+        advertise_addr: "{{ inventory_hostname }}:4567"
+        remote_addrs: [ "{{ groups['manager_main'][0] }}:2377" ]
+      register: result
+
+- name: Add Managers
+  hosts: managers
+  tasks:
+    - docker_swarm:
+        state: join
+        #advertise_addr: "{{ inventory_hostname }}:2377"
+        advertise_addr: "{{ inventory_hostname }}:2377"
+        remote_addrs: [ "{{ groups['manager_main'][0] }}:2377" ]
+        join_token: "{{ hostvars[groups['manager_main'][0]].token.manager }}"
+
+
+- name: Deploy
+  hosts: manager_main
+  vars:
+    compose_path: /tmp/docker-compose.yml
+  tasks:
+    - name: Copy compose file
+      copy:
+        src: ../game/docker-compose.yml
+        dest: "{{ compose_path }}"
+    - name: Deploy the product
+      shell: "docker stack deploy -c {{ compose_path }} game"
+
+    # - name: Clean statusy
+    #   shell: docker swarm leave --force 

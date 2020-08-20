@@ -1,0 +1,70 @@
+---
+- name: Install Docker
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Update the apt package index
+      become: yes
+      apt:
+        name: "*"
+        state: latest
+        update_cache: yes
+        force_apt_get: yes
+
+    - name: Install packages
+      become: yes
+      apt:
+        name: "{{ packagesdep }}"
+        force_apt_get: yes
+        state: latest
+        update_cache: yes
+      vars:
+        packagesdep:
+        - git
+        - apt-transport-https
+        - ca-certificates
+        - wget
+        - software-properties-common
+        - gnupg2
+        - curl
+        - python3-docker
+
+    - name: Add Apt signing key from official docker repo
+      apt_key:
+        url: https://download.docker.com/linux/debian/gpg
+        state: present
+
+    - name: add docker official repository for Debian Buster
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/debian buster stable
+        state: present
+
+    - name: Index new repo into the cache
+      become: yes
+      apt:
+        name: "*"
+        state: latest
+        update_cache: yes
+        force_apt_get: yes
+
+    - name: Install docker
+      apt:
+        name: "docker-ce"
+        state: latest
+
+    - name: Ensure Docker is runnig 
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Adding user deploy to docker group
+      user: name=deploy
+            group=deploy
+            groups=docker
+            append=yes
+
+
+
+          

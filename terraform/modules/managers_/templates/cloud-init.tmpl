@@ -1,0 +1,14 @@
+#cloud-config
+ssh_pwauth: False
+
+users:
+  - default
+  - name: deploy
+    groups: 
+     - docker
+    lock_passwd: True
+    shell: /bin/bash
+    chpasswd: {expire: False}
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    ssh_authorized_keys:
+      - ${ssh_pub_key}
